@@ -84,7 +84,7 @@ function MainView() {
           }
         });
 
-        // Set a unique id card-clicked for the clicked card 
+        // Set a unique id card-clicked for the clicked card
         card.id = "card-clicked";
         manageSelection();
         //change the pianoRollContainer from pianoRollContainer to pianoRollContainer-flex with other css style (Main View)
@@ -111,11 +111,11 @@ function manageSelection() {
     let allSelections = [];
     let closeIconIDCount = 0;
 
-    let section = document.createElementNS(
+    let selection = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "rect"
     );
-    const noteCountText = document.createElementNS(
+    let noteCountText = document.createElementNS(
       "http://www.w3.org/2000/svg",
       "text"
     );
@@ -127,21 +127,21 @@ function manageSelection() {
       startX = (e.clientX - svgRect.left) / svgRect.width;
     });
 
-    // Add a mouse-move event listener to create a section while dragging or create a mouse vertical guideline when moving without dragging.
+    // Add a mouse-move event listener to create a selection while dragging or create a mouse vertical guideline when moving without dragging.
     svg.addEventListener("mousemove", (e) => {
       const svgRect = svg.getBoundingClientRect();
       const mouseX = (e.clientX - svgRect.left) / svgRect.width;
 
       if (isDragging) {
         // Create a <rect> element for the background while dragging
-        section.setAttribute("x", mouseX < startX ? mouseX : startX);
-        section.setAttribute("y", 0);
-        section.setAttribute("width", Math.abs(mouseX - startX));
-        section.setAttribute("height", 1);
-        section.setAttribute("fill", "RGB(255, 247, 204,0.5)");
-        section.setAttribute("stroke", "RGB(204,204,0)");
-        section.setAttribute("stroke-width", "0.002");
-        section.setAttribute("id", "backgroundRect");
+        selection.setAttribute("x", mouseX < startX ? mouseX : startX);
+        selection.setAttribute("y", 0);
+        selection.setAttribute("width", Math.abs(mouseX - startX));
+        selection.setAttribute("height", 1);
+        selection.setAttribute("fill", "RGB(255, 247, 204,0.5)");
+        selection.setAttribute("stroke", "RGB(204,204,0)");
+        selection.setAttribute("stroke-width", "0.002");
+        selection.setAttribute("id", "backgroundRect");
 
         // Create a noteCountText element for displying the number of Notes
         noteCountText.setAttribute("x", mouseX < startX ? mouseX : startX); // X-coordinate
@@ -152,16 +152,16 @@ function manageSelection() {
         noteCountText.setAttribute("font-weight", "bold");
         noteCountText.setAttribute("id", "NotesCount");
 
-        // Count the notes number within the selection if the start of the Note included in the section then count+1, thia is what I get from the discord ansower.
+        // Count the notes number within the selection if the start of the Note included in the selection then count+1, thia is what I get from the discord ansower.
         let count = countingNotes(svg, startX, mouseX);
 
         noteCountText.textContent = `Notes: ${count}`;
 
-        //append the section and the notes text to the SVG
-        svg.appendChild(section);
+        //append the selection and the notes text to the SVG
+        svg.appendChild(selection);
         svg.appendChild(noteCountText);
       } else {
-        // In this else, I'm checking if the mouse is inside one of the sections, then omit the vertical guideline until the mouse moves out of the section.
+        // In this else, I'm checking if the mouse is inside one of the selections, then omit the vertical guideline until the mouse moves out of the selection.
         let mouseXFound = false;
         if (allSelections.length != 0) {
           allSelections.forEach((group) => {
@@ -169,12 +169,12 @@ function manageSelection() {
             const rect = group.querySelector("rect");
 
             if (rect) {
-              // Get the x and width attributes of the section to calculat endX which is the end boundry of the section to check after that if the mouse inside the interval section x and endx
+              // Get the x and width attributes of the selection to calculat endX which is the end boundry of the selection to check after that if the mouse inside the interval selection x and endx
               var x = parseFloat(rect.getAttribute("x"));
               var width = parseFloat(rect.getAttribute("width"));
               const endX = x + width;
 
-              // Check if mouseX is within the section
+              // Check if mouseX is within the selection
               if (mouseX >= x && mouseX <= endX) {
                 mouseXFound = true;
                 // Exit the loop
@@ -191,21 +191,25 @@ function manageSelection() {
       }
     });
 
-    // Add a mouse-up event listener to stop dragging and apply the creation of a section with a deletion button for the section in the top and a text at the bottom of the section to display the number of notes inside the section.
+    // Add a mouse-up event listener to stop dragging and apply the creation of a selection with a deletion button for the selection in the top and a text at the bottom of the selection to display the number of notes inside the selection.
     svg.addEventListener("mouseup", (e) => {
       isDragging = false;
-      if (section) {
-        svg.removeChild(section);
+      if (selection && selection.parentNode === svg) {
+        svg.removeChild(selection);
+        svg.removeChild(noteCountText);
       }
       const svgRect = svg.getBoundingClientRect();
       const mouseX = (e.clientX - svgRect.left) / svgRect.width;
-      const clonedSection = section.cloneNode(true);
+      const clonedselection = selection.cloneNode(true);
       const notesNumber = noteCountText.cloneNode(true);
-
+      // logging the start and the end points of the selection
+      console.log(
+        `The selection start point is: ${startX}, and The selection end point is:${mouseX} `
+      );
       if (startX !== mouseX) {
-        // When the initial click position (startX) is different from the mouseX coordinate where the mouseUp event triggered, I have created a group of elements and appended to it the section, closeIcon, and the notesNumber.
-        const rectX = parseFloat(clonedSection.getAttribute("x"));
-        const rectWidth = parseFloat(clonedSection.getAttribute("width"));
+        // When the initial click position (startX) is different from the mouseX coordinate when the mouseUp event triggered, I have created a group of elements and appended to it the selection, closeIcon, and the notesNumber.
+        const rectX = parseFloat(clonedselection.getAttribute("x"));
+        const rectWidth = parseFloat(clonedselection.getAttribute("width"));
         const NotesCount = notesNumber.textContent;
         console.log({ NotesCount });
         // Calculate the x-position for the closeIcon element
@@ -221,15 +225,15 @@ function manageSelection() {
         closeIcon.setAttribute("y", "0.01"); // Y-coordinate
         closeIcon.setAttribute("width", "0.05");
         closeIcon.setAttribute("height", "0.05");
-        closeIcon.setAttribute("href", "window-close.png");
+        closeIcon.setAttribute("href", "assets/window-close.png");
         closeIcon.setAttribute("id", `${closeIconIDCount}`);
 
-        //Create the group element to append to it the section, closeIcon, notesNumber text. and after that append the group to the SVG
+        //Create the group element to append to it the selection, closeIcon, notesNumber text. and after that append the group to the SVG
         const group = document.createElementNS(
           "http://www.w3.org/2000/svg",
           "g"
         );
-        group.appendChild(clonedSection);
+        group.appendChild(clonedselection);
         group.appendChild(closeIcon);
         group.appendChild(notesNumber);
         allSelections.push(group);
@@ -240,7 +244,7 @@ function manageSelection() {
       }
     });
 
-    // Add the event listener for clicking on closeIcone to delete the group which contains the section, closeIcon, notesNumber text.
+    // Add the event listener for clicking on closeIcone to delete the group which contains the selection, closeIcon, notesNumber text.
     svg.addEventListener("click", (event) => {
       const target = event.target;
       if (target.nodeName === "image") {
